@@ -1,14 +1,14 @@
 //=====================================================================
 // Project: 4 core MESI cache design
-// File Name: MESI.sv
+// File Name: MESItest.sv
 // Description: Test for various MESI transitions
-// Designers: group8
+// Designers: Bhavesh
 //=====================================================================
 
-class MESI extends base_test;
+class MESItest extends base_test;
 
     //component macro
-    `uvm_component_utils(MESI)
+    `uvm_component_utils(MESItest)
 
     //Constructor
     function new(string name, uvm_component parent);
@@ -17,165 +17,195 @@ class MESI extends base_test;
 
     //UVM build phase
     function void build_phase(uvm_phase phase);
-        //uvm_config_wrapper::set(this, "tb.vsequencer.run_phase", "default_sequence", M_to_S_seq::type_id::get());
-        //uvm_config_wrapper::set(this, "tb.vsequencer.run_phase", "default_sequence", E_to_S_seq::type_id::get());
-        //uvm_config_wrapper::set(this, "tb.vsequencer.run_phase", "default_sequence", S_to_S_seq::type_id::get());
-        //uvm_config_wrapper::set(this, "tb.vsequencer.run_phase", "default_sequence", I_to_S_seq::type_id::get());
-        //uvm_config_wrapper::set(this, "tb.vsequencer.run_phase", "default_sequence", M_to_I_seq::type_id::get());
-        //uvm_config_wrapper::set(this, "tb.vsequencer.run_phase", "default_sequence", E_to_I_seq::type_id::get());
-        uvm_config_wrapper::set(this, "tb.vsequencer.run_phase", "default_sequence", M_S_I_S_Seq::type_id::get());
+        //uvm_config_wrapper::set(this, "tb.vsequencer.run_phase", "default_sequence", MS_seq::type_id::get());
+        //uvm_config_wrapper::set(this, "tb.vsequencer.run_phase", "default_sequence", MI_seq::type_id::get());
+        //uvm_config_wrapper::set(this, "tb.vsequencer.run_phase", "default_sequence", IS_seq::type_id::get());
+        //uvm_config_wrapper::set(this, "tb.vsequencer.run_phase", "default_sequence", IM_seq::type_id::get());
+        //uvm_config_wrapper::set(this, "tb.vsequencer.run_phase", "default_sequence", EI_seq::type_id::get());
+        //uvm_config_wrapper::set(this, "tb.vsequencer.run_phase", "default_sequence", ES_seq::type_id::get());
+        //uvm_config_wrapper::set(this, "tb.vsequencer.run_phase", "default_sequence", SS_seq::type_id::get());
+	  uvm_config_wrapper::set(this, "tb.vsequencer.run_phase", "default_sequence", MSI_Seq::type_id::get());
 
         super.build_phase(phase);
     endfunction : build_phase
 
     //UVM run phase()
     task run_phase(uvm_phase phase);
-        `uvm_info(get_type_name(), "Executing MESI test" , UVM_LOW)
+        `uvm_info(get_type_name(), "Testing MESI test" , UVM_LOW)
     endtask: run_phase
 
-endclass : MESI
+endclass : MESItest
 
+//// Modified to Shared Sequence////
 
-// Sequence for a Modified to Shared transition
-class M_to_S_seq extends base_vseq;
+class MS_seq extends base_vseq;
     //object macro
-    `uvm_object_utils(M_to_S_seq)
+    `uvm_object_utils(MS_seq)
 
     cpu_transaction_c trans;
 
     //constructor
-    function new (string name="M_to_S_seq");
+    function new (string name="MS_seq");
         super.new(name);
     endfunction : new
 
     virtual task body();
-        `uvm_do_on_with(trans, p_sequencer.cpu_seqr[mp], {request_type == WRITE_REQ; access_cache_type == DCACHE_ACC; address == 32'hF111_F111; data == 32'hF000_000F;})
-        `uvm_do_on_with(trans, p_sequencer.cpu_seqr[sp1], {request_type == READ_REQ; access_cache_type == DCACHE_ACC; address == 32'hF111_F111;})
-        `uvm_info(get_type_name(), "Executing M_to_S sequence" , UVM_LOW)
+        `uvm_do_on_with(trans, p_sequencer.cpu_seqr[0], {request_type == WRITE_REQ; access_cache_type == DCACHE_ACC; address == 32'hFEDC_CDEF; data == 32'hABCD_EF01;})//write miss, data brought in, in M state
+        `uvm_do_on_with(trans, p_sequencer.cpu_seqr[1], {request_type == READ_REQ; access_cache_type == DCACHE_ACC; address == 32'hFEDC_CDEF;})//data read by proc1, state transitions from M to S
+        `uvm_info(get_type_name(), "Testing MS sequence" , UVM_LOW)
     endtask
 
-endclass : M_to_S_seq
+endclass : MS_seq
 
-class E_to_S_seq extends base_vseq;
+//// Modified to Invalid Sequence////
+
+class MI_seq extends base_vseq;
     //object macro
-    `uvm_object_utils(E_to_S_seq)
+    `uvm_object_utils(MI_seq)
 
     cpu_transaction_c trans;
 
     //constructor
-    function new (string name="E_to_S_seq");
+    function new (string name="MI_seq");
         super.new(name);
     endfunction : new
 
     virtual task body();
-        `uvm_do_on_with(trans, p_sequencer.cpu_seqr[mp], {request_type == READ_REQ; access_cache_type == DCACHE_ACC; address == 32'hF111_F111;})
-        `uvm_do_on_with(trans, p_sequencer.cpu_seqr[sp1], {request_type == READ_REQ; access_cache_type == DCACHE_ACC; address == 32'hF111_F111;})
-        `uvm_info(get_type_name(), "Executing E_to_S sequence" , UVM_LOW)
+        `uvm_do_on_with(trans, p_sequencer.cpu_seqr[0], {request_type == WRITE_REQ; access_cache_type == DCACHE_ACC; address == 32'hFEDC_CDEF; data == 32'hEF01_ABCD;})
+        `uvm_do_on_with(trans, p_sequencer.cpu_seqr[1], {request_type == WRITE_REQ; access_cache_type == DCACHE_ACC; address == 32'hFEDC_CDEF; data == 32'hABCD_EF01;})
+        `uvm_info(get_type_name(), "Testing MI sequence" , UVM_LOW)
     endtask
 
-endclass : E_to_S_seq
+endclass : MI_seq
 
-class S_to_S_seq extends base_vseq;
+//// Invalid to Shared Sequence////
+
+class IS_seq extends base_vseq;
     //object macro
-    `uvm_object_utils(S_to_S_seq)
+    `uvm_object_utils(IS_seq)
 
     cpu_transaction_c trans;
 
     //constructor
-    function new (string name="S_to_S_seq");
+    function new (string name="IS_seq");
         super.new(name);
     endfunction : new
 
     virtual task body();
-        `uvm_do_on_with(trans, p_sequencer.cpu_seqr[mp], {request_type == WRITE_REQ; access_cache_type == DCACHE_ACC; address == 32'hF111_F111; data == 32'hF000_000F;})
-        `uvm_do_on_with(trans, p_sequencer.cpu_seqr[sp1], {request_type == READ_REQ; access_cache_type == DCACHE_ACC; address == 32'hF111_F111;})
-        `uvm_do_on_with(trans, p_sequencer.cpu_seqr[sp2], {request_type == READ_REQ; access_cache_type == DCACHE_ACC; address == 32'hF111_F111;})
-        `uvm_info(get_type_name(), "Executing S_to_S sequence" , UVM_LOW)
+        `uvm_do_on_with(trans, p_sequencer.cpu_seqr[0], {request_type == READ_REQ; access_cache_type == DCACHE_ACC; address == 32'hFEDC_CDEF;})
+        `uvm_do_on_with(trans, p_sequencer.cpu_seqr[1], {request_type == WRITE_REQ; access_cache_type == DCACHE_ACC; address == 32'hFEDC_CDEF; data == 32'hABCD_EF01;}) //0 is Invalid
+        `uvm_do_on_with(trans, p_sequencer.cpu_seqr[0], {request_type == READ_REQ; access_cache_type == DCACHE_ACC; address == 32'hFEDC_CDEF;}) // 0 is in Shared again
+        `uvm_info(get_type_name(), "Testing IS sequence" , UVM_LOW)
     endtask
 
-endclass : S_to_S_seq
+endclass : IS_seq
 
-class E_to_I_seq extends base_vseq;
+//// Invalid to Modified Sequence////
+
+class IM_seq extends base_vseq;
     //object macro
-    `uvm_object_utils(E_to_I_seq)
+    `uvm_object_utils(IM_seq)
 
     cpu_transaction_c trans;
 
     //constructor
-    function new (string name="E_to_I_seq");
+    function new (string name="IM_seq");
         super.new(name);
     endfunction : new
 
     virtual task body();
-        `uvm_do_on_with(trans, p_sequencer.cpu_seqr[mp], {request_type == READ_REQ; access_cache_type == DCACHE_ACC; address == 32'hF111_F111;})
-        `uvm_do_on_with(trans, p_sequencer.cpu_seqr[sp1], {request_type == WRITE_REQ; access_cache_type == DCACHE_ACC; address == 32'hF111_F111; data == 32'h1234_5678;})
-        `uvm_info(get_type_name(), "Executing E_to_I sequence" , UVM_LOW)
+        `uvm_do_on_with(trans, p_sequencer.cpu_seqr[0], {request_type == READ_REQ; access_cache_type == DCACHE_ACC; address == 32'hFEDC_CDEF;})
+        `uvm_do_on_with(trans, p_sequencer.cpu_seqr[1], {request_type == WRITE_REQ; access_cache_type == DCACHE_ACC; address == 32'hFEDC_CDEF; data == 32'hEF01_ABCD;}) 
+        `uvm_do_on_with(trans, p_sequencer.cpu_seqr[0], {request_type == WRITE_REQ; access_cache_type == DCACHE_ACC; address == 32'hFEDC_CDEF; data == 32'hABCD_EF01;})  
+        `uvm_do_on_with(trans, p_sequencer.cpu_seqr[0], {request_type == READ_REQ; access_cache_type == DCACHE_ACC; address == 32'hFEDC_CDEF;})
+        `uvm_info(get_type_name(), "Executing I_to_M sequence" , UVM_LOW)
     endtask
 
-endclass : E_to_I_seq
+endclass : IM_seq
 
-class I_to_S_seq extends base_vseq;
+//// Exclusive to Invalid Sequence////
+
+class EI_seq extends base_vseq;
     //object macro
-    `uvm_object_utils(I_to_S_seq)
+    `uvm_object_utils(EI_seq)
 
     cpu_transaction_c trans;
 
     //constructor
-    function new (string name="I_to_S_seq");
+    function new (string name="EI_seq");
         super.new(name);
     endfunction : new
 
     virtual task body();
-        `uvm_do_on_with(trans, p_sequencer.cpu_seqr[mp], {request_type == READ_REQ; access_cache_type == DCACHE_ACC; address == 32'hF111_F111;})
-        `uvm_do_on_with(trans, p_sequencer.cpu_seqr[sp1], {request_type == WRITE_REQ; access_cache_type == DCACHE_ACC; address == 32'hF111_F111; data == 32'h1234_5678;}) //mp is Invalid
-        `uvm_do_on_with(trans, p_sequencer.cpu_seqr[mp], {request_type == READ_REQ; access_cache_type == DCACHE_ACC; address == 32'hF111_F111;}) // mp is in Shared again
-        `uvm_info(get_type_name(), "Executing I_to_S sequence" , UVM_LOW)
+        `uvm_do_on_with(trans, p_sequencer.cpu_seqr[0], {request_type == READ_REQ; access_cache_type == DCACHE_ACC; address == 32'hFEDC_CDEF;})
+        `uvm_do_on_with(trans, p_sequencer.cpu_seqr[1], {request_type == WRITE_REQ; access_cache_type == DCACHE_ACC; address == 32'hFEDC_CDEF; data == 32'hABCD_EF01;})
+        `uvm_info(get_type_name(), "Testing EI sequence" , UVM_LOW)
     endtask
 
-endclass : I_to_S_seq
+endclass : EI_seq
 
-class M_to_I_seq extends base_vseq;
+//// Exclusive to Shared Sequence////
+
+class ES_seq extends base_vseq;
     //object macro
-    `uvm_object_utils(M_to_I_seq)
+    `uvm_object_utils(ES_seq)
 
     cpu_transaction_c trans;
 
     //constructor
-    function new (string name="M_to_I_seq");
+    function new (string name="ES_seq");
         super.new(name);
     endfunction : new
 
     virtual task body();
-        `uvm_do_on_with(trans, p_sequencer.cpu_seqr[mp], {request_type == WRITE_REQ; access_cache_type == DCACHE_ACC; address == 32'hF111_F111; data == 32'h0000_0000;})
-        `uvm_do_on_with(trans, p_sequencer.cpu_seqr[sp1], {request_type == WRITE_REQ; access_cache_type == DCACHE_ACC; address == 32'hF111_F111; data == 32'h1234_5678;})
-        `uvm_info(get_type_name(), "Executing M_to_I sequence" , UVM_LOW)
+        `uvm_do_on_with(trans, p_sequencer.cpu_seqr[0], {request_type == READ_REQ; access_cache_type == DCACHE_ACC; address == 32'hFEDC_CDEF;})//read miss, data brought in, in E state
+        `uvm_do_on_with(trans, p_sequencer.cpu_seqr[1], {request_type == READ_REQ; access_cache_type == DCACHE_ACC; address == 32'hFEDC_CDEF;})//data read by proc1, state transitions from M to S
+        `uvm_info(get_type_name(), "Testing ES sequence" , UVM_LOW)
     endtask
 
-endclass : M_to_I_seq
+endclass : ES_seq
 
-class M_S_I_S_Seq extends base_vseq;
+//// Shared to Shared Sequence////
+
+class SS_seq extends base_vseq;
     //object macro
-    `uvm_object_utils(M_S_I_S_Seq)
+    `uvm_object_utils(SS_seq)
 
     cpu_transaction_c trans;
 
     //constructor
-    function new (string name="M_S_I_S_Seq");
+    function new (string name="SS_seq");
         super.new(name);
     endfunction : new
 
     virtual task body();
-	`uvm_do_on_with(trans, p_sequencer.cpu_seqr[mp], {request_type == WRITE_REQ; access_cache_type == DCACHE_ACC; address == 32'hF111_F111; data == 32'hF011_000F;})
-
-        `uvm_do_on_with(trans, p_sequencer.cpu_seqr[sp1], {request_type == READ_REQ; access_cache_type == DCACHE_ACC; address == 32'hF111_F111;})
-
-        `uvm_do_on_with(trans, p_sequencer.cpu_seqr[sp1], {request_type == WRITE_REQ; access_cache_type == DCACHE_ACC; address == 32'hF111_F111; data == 32'h1234_1234;})
-
-	    `uvm_do_on_with(trans, p_sequencer.cpu_seqr[sp1], {request_type == READ_REQ; access_cache_type == DCACHE_ACC; address == 32'hF111_F111;})
-
-        `uvm_do_on_with(trans, p_sequencer.cpu_seqr[mp], {request_type == READ_REQ; access_cache_type == DCACHE_ACC; address == 32'hF111_F111;})
-
-        `uvm_info(get_type_name(), "Executing S_to_I sequence" , UVM_LOW)
+        `uvm_do_on_with(trans, p_sequencer.cpu_seqr[0], {request_type == WRITE_REQ; access_cache_type == DCACHE_ACC; address == 32'hFEDC_CDEF; data == 32'hABCD_EF01;})//write miss, data brought in, in M state
+        `uvm_do_on_with(trans, p_sequencer.cpu_seqr[1], {request_type == READ_REQ; access_cache_type == DCACHE_ACC; address == 32'hFEDC_CDEF;})//data read by proc1, state transitions from M to S
+        `uvm_do_on_with(trans, p_sequencer.cpu_seqr[2], {request_type == READ_REQ; access_cache_type == DCACHE_ACC; address == 32'hFEDC_CDEF;})//data read by proc2, state transitions from S to S
+        `uvm_info(get_type_name(), "Testing SS sequence" , UVM_LOW)
     endtask
 
-endclass : M_S_I_S_Seq
+endclass : SS_seq
+
+
+//// Modified to Shared to Invalid Sequence////
+
+class MSI_Seq extends base_vseq;
+    //object macro
+    `uvm_object_utils(MSI_Seq)
+
+    cpu_transaction_c trans;
+
+    //constructor
+    function new (string name="MSI_Seq");
+        super.new(name);
+    endfunction : new
+
+    virtual task body();
+	`uvm_do_on_with(trans, p_sequencer.cpu_seqr[0], {request_type == WRITE_REQ; access_cache_type == DCACHE_ACC; address == 32'hFEDC_CDEF; data == 32'hABCD_EF01;})
+      `uvm_do_on_with(trans, p_sequencer.cpu_seqr[1], {request_type == READ_REQ; access_cache_type == DCACHE_ACC; address == 32'hFEDC_CDEF;})
+      `uvm_do_on_with(trans, p_sequencer.cpu_seqr[1], {request_type == WRITE_REQ; access_cache_type == DCACHE_ACC; address == 32'hFEDC_CDEF; data == 32'hEF01_ABCD;})
+      `uvm_info(get_type_name(), "Testing MSI sequence" , UVM_LOW)
+    endtask
+
+endclass : MSI_Seq
