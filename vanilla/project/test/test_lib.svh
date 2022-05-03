@@ -14,3 +14,4 @@
 `include "cache_data_hit_write.sv"
 `include "cache_inst_hit_read.sv"
 `include "mesi.sv"
+`include "l2lrutesting.sv"
