@@ -135,7 +135,7 @@ module main_func_lv1_dl #(
         invalidate_reg          <= 1'bz;
         bus_rd_reg              <= 1'bz;
         bus_rdx_reg             <= 1'bz;
-        invalidation_done       <= 1'bz;
+        invalidation_done       <= 1'b0;
         bus_lv1_lv2_req_proc_dl <= 1'b0;
         bus_lv1_lv2_req_snoop   <= 1'b0;
         data_in_bus_cpu_lv1_dl  <= 1'b0;
@@ -182,7 +182,7 @@ module main_func_lv1_dl #(
             else if(!blk_free) begin
                 case (`CACHE_CURRENT_MESI_PROC)
                     SHARED:
-                        `CACHE_CURRENT_MESI_PROC <= SHARED;
+                        `CACHE_CURRENT_MESI_PROC <= INVALID;
                     EXCLUSIVE:
                         `CACHE_CURRENT_MESI_PROC <= INVALID;
                     MODIFIED: begin
@@ -278,7 +278,7 @@ module main_func_lv1_dl #(
                             addr_bus_lv1_lv2_reg <= {`CACHE_CURRENT_TAG_PROC,index_proc,2'b00};
                             data_bus_lv1_lv2_reg <= cache_var[{index_proc,blk_access_proc}];
                             lv2_wr                  <= 1'b1;
-                            if (lv2_wr) begin
+                            if (lv2_wr_done) begin
                                 `CACHE_CURRENT_MESI_PROC <= INVALID;
                                 lv2_wr                   <= 1'b0;
                             end
@@ -294,7 +294,7 @@ module main_func_lv1_dl #(
         if(blk_hit_snoop && (bus_lv1_lv2_gnt_proc != 1'b1)) begin
             if(invalidate && !invalidation_done) begin
                 shared_local              <= 1'b1;
-                `CACHE_CURRENT_MESI_SNOOP <= updated_mesi_proc;
+                `CACHE_CURRENT_MESI_SNOOP <= updated_mesi_snoop;
                 invalidation_done         <= 1'b1;
             end
             else if(bus_rdx) begin

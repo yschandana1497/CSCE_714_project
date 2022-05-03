@@ -18,7 +18,7 @@ endfunction : new
 //UVM build phase
 function void build_phase(uvm_phase phase);
     uvm_config_wrapper::set(this, "tb.vsequencer.run_phase", "default_sequence", ran_seq_read_hit_i::type_id::get());
-    //uvm_config_wrapper::set(this, "tb.vsequencer.run_phase", "default_sequence", ran_seq_read_hit_i_lrutest::type_id::get());
+    uvm_config_wrapper::set(this, "tb.vsequencer.run_phase", "default_sequence", ran_seq_read_hit_i_lru::type_id::get());
     super.build_phase(phase);
 endfunction : build_phase
 
@@ -63,7 +63,7 @@ constraint cache_type_set {
 }
 
 
-//constraint for wait cycels   //Number of cycles to wait before driving the transactio
+//constraint for wait cycles   //Number of cycles to wait before driving the transactio
 
 endclass: constrained_trans_4
 
@@ -83,7 +83,38 @@ endfunction : new
 
 constrained_trans_4 trans = constrained_trans_4::type_id::create("t");
 virtual task body();
-bit [31:0] addrarray[7] = {32'h3ff0_fff0, 32'h3ff1_fff0,32'h3ff2_fff0,32'h3ff3_fff0,32'h3ff4_fff0,32'h3ff5_fff0,32'h3ff2_fff0};
+
+bit [31:0] addrRand;
+repeat(2)
+begin
+    for(int i=0; i<4; i++)
+    begin 
+        addrRand = $urandom_range(32'h0000_0000,32'h3fff_ffff);
+        `uvm_do_on_with(trans, p_sequencer.cpu_seqr[i],{address== addrRand ;})
+        `uvm_do_on_with(trans, p_sequencer.cpu_seqr[i],{address== addrRand ;})
+    end
+end
+    
+    
+endtask
+
+endclass : ran_seq_read_hit_i
+
+
+class ran_seq_read_hit_i_lru extends base_vseq;
+//object macro
+`uvm_object_utils(ran_seq_read_hit_i_lru)
+
+
+//constructor
+function new (string name="ran_seq_read_hit_i_lru");
+    super.new(name);
+endfunction : new
+
+
+constrained_trans_4 trans = constrained_trans_4::type_id::create("t");
+virtual task body();
+bit [31:0] addrarray[7] = {32'h3ff0_1234, 32'h3ff1_1234,32'h3ff2_1234,32'h3ff3_1234,32'h3ff4_1234,32'h3ff5_1234,32'h3ff2_1234};
 
 repeat(2)
 begin
@@ -94,12 +125,12 @@ begin
         `uvm_do_on_with(trans, p_sequencer.cpu_seqr[i],{address== addrarray[2] ;})
         `uvm_do_on_with(trans, p_sequencer.cpu_seqr[i],{address== addrarray[3] ;})
         `uvm_do_on_with(trans, p_sequencer.cpu_seqr[i],{address== addrarray[4] ;})
+        `uvm_do_on_with(trans, p_sequencer.cpu_seqr[i],{address== addrarray[5] ;})
         `uvm_do_on_with(trans, p_sequencer.cpu_seqr[i],{address== addrarray[6] ;})
-        `uvm_do_on_with(trans, p_sequencer.cpu_seqr[i],{address== addrarray[7] ;})
     end
 end
     
     
 endtask
 
-endclass : ran_seq_read_hit_i
+endclass : ran_seq_read_hit_i_lru

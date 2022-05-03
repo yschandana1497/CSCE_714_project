@@ -56,6 +56,8 @@
 ../uvm/base_test.sv
 ./read_miss_icache.sv
 ../uvm/read_miss_icache.sv
+./randomised.sv
+../uvm/randomised.sv
 ./cache_data_miss_read.sv
 ../uvm/cache_data_miss_read.sv
 ./cache_data_hit_read.sv
@@ -66,3 +68,5 @@
 ../uvm/cache_data_hit_write.sv
 ./cache_inst_hit_read.sv
 ../uvm/cache_inst_hit_read.sv
+./mesi.sv
+../uvm/mesi.sv

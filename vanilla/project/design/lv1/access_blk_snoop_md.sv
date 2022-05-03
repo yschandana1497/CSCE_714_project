@@ -37,7 +37,7 @@ module access_blk_snoop_md #(
     endgenerate
     
     always @* begin 
-        if(bus_rd || bus_rdx) begin
+        if(bus_rd || bus_rdx || invalidate) begin
             for(i = 0; i < ASSOC; i++) begin
                 if(cache_mesi[i] != INVALID && cache_tag[i] == tag_snoop)
                     access_blk_snoop[i] = 1'b1;   

@@ -1,7 +1,7 @@
 //=====================================================================
 // Project: 4 core MESI cache design
 // File Name: cache_data_miss_write.sv
-// Description: Test for read-miss to I-cache
+// Description: Test for write-miss to d-cache
 // Designers: group 8
 //=====================================================================
 
@@ -17,7 +17,7 @@ endfunction : new
 
 //UVM build phase
 function void build_phase(uvm_phase phase);
-    uvm_config_wrapper::set(this, "tb.vsequencer.run_phase", "default_sequence", ran_seq_write_miss_d::type_id::get());
+    uvm_config_wrapper::set(this, "tb.vsequencer.run_phase", "default_sequence", ran_seq_write_miss_lru_replacement_d::type_id::get());
     super.build_phase(phase);
 endfunction : build_phase
 
@@ -42,12 +42,13 @@ endfunction:new
 
 //request type -- Read or --Write READ==0, Write ==1
 constraint req_type_set {
-    request_type == 1;
+  soft  request_type == 1;
 }
 
 //constraint for address
 constraint address_set {
     address > 32'h4000_0000;
+		address[15:2] == 14'b11111111111111;
     unique {address} ;
 }
 
@@ -56,7 +57,7 @@ constraint address_set {
 
 //accesss cache type   icache =0; dcache 1
 constraint cache_type_set {
-    access_cache_type ==  1 ;
+   soft access_cache_type ==  1 ;
 }
 
 
@@ -64,16 +65,14 @@ constraint cache_type_set {
 
 endclass: constrained_trans_2
 
-
-
-//test for cache_data_miss_write
-class ran_seq_write_miss_d extends base_vseq;
+//test for cache_data_miss_write_lru_replacement
+class ran_seq_write_miss_lru_replacement_d extends base_vseq;
 //object macro
-`uvm_object_utils(ran_seq_write_miss_d)
+`uvm_object_utils(ran_seq_write_miss_lru_replacement_d)
 
 
 //constructor
-function new (string name="ran_seq_write_miss_d");
+function new (string name="ran_seq_write_miss_lru_replacement_d");
     super.new(name);
 endfunction : new
 
@@ -81,20 +80,14 @@ endfunction : new
 constrained_trans_2 trans = constrained_trans_2::type_id::create("t");
 virtual task body();
 
-bit [31:0] addrRand;
-repeat(10)
+ for(int i=0; i<4; i++)
 begin
-    
-    for(int i=0; i<4; i++)
-    begin
-        addrRand = $urandom_range(32'h4000_0000,32'hffff_ffff);
-        `uvm_do_on_with(trans, p_sequencer.cpu_seqr[i],{address== addrRand ;})
-        //`uvm_do_on_with(trans, p_sequencer.cpu_seqr[i],{address== addrRand ;})
+	for(int j=0; j<5; j++)
+		begin
+        `uvm_do_on(trans, p_sequencer.cpu_seqr[i])
     end
-
 end
-    
-    
+
 endtask
 
-endclass : ran_seq_write_miss_d
+endclass : ran_seq_write_miss_lru_replacement_d

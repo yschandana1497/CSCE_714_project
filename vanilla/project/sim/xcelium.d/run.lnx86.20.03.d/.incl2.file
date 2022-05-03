@@ -56,6 +56,8 @@
 /home/grads/k/k.rajeshsai/vanilla/project/test/base_test.sv
 ../test/read_miss_icache.sv
 /home/grads/k/k.rajeshsai/vanilla/project/test/read_miss_icache.sv
+../test/randomised.sv
+/home/grads/k/k.rajeshsai/vanilla/project/test/randomised.sv
 ../test/cache_data_miss_read.sv
 /home/grads/k/k.rajeshsai/vanilla/project/test/cache_data_miss_read.sv
 ../test/cache_data_hit_read.sv
@@ -66,3 +68,5 @@
 /home/grads/k/k.rajeshsai/vanilla/project/test/cache_data_hit_write.sv
 ../test/cache_inst_hit_read.sv
 /home/grads/k/k.rajeshsai/vanilla/project/test/cache_inst_hit_read.sv
+../test/mesi.sv
+/home/grads/k/k.rajeshsai/vanilla/project/test/mesi.sv
